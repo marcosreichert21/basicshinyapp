@@ -4,11 +4,14 @@ H2H <- tabPanel(fluidRow(br(),
                                             'Choose Team',
                                             choices = unique(Teams$team))
                                 ),
+                         column(3, 
+                                h2('Number of Matches:', textOutput('kpi')),
+                                align = 'center'
+                         ),
                           column(width = 3, 
-                                 offset = 3,
+                                 #offset = 3,
                                  selectizeInput('opponent',
                                              'Choose Adversaries',
-                                             multiple = T,
                                              choices = unique(Teams$opponent))
                                  )
                          ),
@@ -16,4 +19,21 @@ H2H <- tabPanel(fluidRow(br(),
                                  plotlyOutput('h2h')
                                  )
                           ),
+                br(),
+                 fluidRow(column(3, offset = 6,
+                                selectInput('varh2h',
+                                            'Choose variable',
+                                            choices =c(`Goals For` = 'goals_for', 
+                                            `Goals Against` = 'goals_against')
+                                            )
+                                )
+                          ),
+                fluidRow(column(9, 
+                                hr()
+                                )
+                         ),
+                fluidRow(column(9,
+                                DTOutput('H2Hdt')
+                                )
+                         ),
                  title = 'Head-to-Head')

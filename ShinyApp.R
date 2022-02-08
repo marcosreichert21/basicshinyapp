@@ -8,6 +8,7 @@ setwd(my.dir)
 library(shiny)
 library(tidyverse)
 library(plotly)
+library(DT)
 
 ##Client Side
 ui <- fluidPage(
@@ -36,7 +37,7 @@ ui <- fluidPage(
   column(9,
          tabsetPanel(Statistics,
                      H2H,
-           tabPanel(tableOutput('details'), title = 'Details')
+                     details
          ))
   )
 )  

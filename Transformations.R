@@ -5,8 +5,8 @@
 #setwd(my.dir)
 
 ###Loads packages
-#library(tidyverse)
-#library(lubridate)
+library(tidyverse)
+library(lubridate)
 
 #Loads Dataset
 SoccerResults <- read_csv('results.csv')
@@ -89,26 +89,27 @@ SoccerResults %>% filter(home_team == 'Brazil' | away_team == 'Brazil')
 #Cleans old dataframes
 rm(list = c('Away', 'Home')) 
 
-testePlot <- Teams %>%
-             filter(team %in% teamFilter$team) %>%
-             group_by(team, venue) %>%
-             summarise(matches = n(),
-                       goals_for = sum(goals_for),
-                       goals_against = sum(goals_against),
-                       goals_diff = sum(goals_for)-sum(goals_against),
-                       wins = sum(ifelse(results == 'Win',1,0)),
-                       draws = sum(ifelse(results == 'Draw',1,0)),
-                       losses = sum(ifelse(results == 'Lose',1,0))
-                       ) %>%
-             mutate(pct_wins = wins/matches,
-                    pct_draws = draws/matches,
-                    pct_losses = losses/matches)
-
-              testePlot  %>%
-              ggplot(aes(x = fct_reorder(team, desc(wins)), y = wins, fill = venue)) +
-             geom_bar(position = 'dodge', stat = 'identity') +
-             theme_classic() +
-             xlab('National Team') +
-             ylab('Wins') +
-             labs(fill = 'Venue')
-             
+Teams %>%
+  filter(date >= '1930-01-01',
+         date <= '2019-01-01') %>%
+  filter(team %in% teamFilter$team) %>%
+  group_by(team, venue) %>%
+  summarise(Matches = n(),
+            Goals_For = sum(goals_for),
+            Goals_Against = sum(goals_against),
+            Goals_Diff = sum(goals_for)-sum(goals_against),
+            Wins = sum(ifelse(results == 'Win',1,0)),
+            Draws = sum(ifelse(results == 'Draw',1,0)),
+            Losses = sum(ifelse(results == 'Lose',1,0))
+  ) %>%
+  mutate(pct_wins = Wins/Matches,
+         pct_draws = Draws/Matches,
+         pct_losses = Losses/Matches) %>%
+  mutate(team = fct_reorder(team, -Matches, sum))
+  
+  
+  ggplot(aes(x = team, fill = venue)) +
+  geom_bar(position = 'dodge', 
+           stat = 'identity', 
+           aes_string(y = 'Matches')) %>%
+  fct_reorder(team, desc(Matches))
