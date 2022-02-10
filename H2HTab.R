@@ -1,7 +1,7 @@
 H2H <- tabPanel(fluidRow(br(),
                          column(3,
                                 selectizeInput('team',
-                                            'Choose Team',
+                                            'Choose a Team:',
                                             choices = unique(Teams$team))
                                 ),
                          column(3, 
@@ -11,7 +11,7 @@ H2H <- tabPanel(fluidRow(br(),
                           column(width = 3, 
                                  #offset = 3,
                                  selectizeInput('opponent',
-                                             'Choose Adversaries',
+                                             'Choose an Adversary:',
                                              choices = unique(Teams$opponent))
                                  )
                          ),
@@ -22,7 +22,7 @@ H2H <- tabPanel(fluidRow(br(),
                 br(),
                  fluidRow(column(3, offset = 6,
                                 selectInput('varh2h',
-                                            'Choose variable',
+                                            'Choose variable:',
                                             choices =c(`Goals For` = 'goals_for', 
                                             `Goals Against` = 'goals_against')
                                             )

@@ -8,12 +8,18 @@ server <- function(input, output, session) {
              if(!'All' %in% input$tourney) tournament %in% input$tourney else T,
              if(input$yncountry == 'Yes') country %in% input$countrydesc  else T)
   })
+  ##Reactive functions for graphic
+  rfun_graph <- reactive({
+    if(input$var %in% c('pct_wins', 'pct_draws', 'pct_losses')) {
+      function(x, y) sum((x * y)/sum(y))
+    } else {
+      function(x, y) sum(x)
+    }
+  })
   
   ##Graphic for tab statistics
   output$stats <- renderPlotly({
-    teamFilter <- count(rval_tdates(), team) %>% arrange(desc(n)) %>% head(input$teams)
-    rval_tdates() %>%
-      filter(team %in% teamFilter$team) %>%
+    p <- rval_tdates() %>%
       group_by(team, venue) %>%
       summarise(Matches = n(),
                 Goals_For = sum(goals_for),
@@ -21,22 +27,80 @@ server <- function(input, output, session) {
                 Goals_Diff = sum(goals_for)-sum(goals_against),
                 Wins = sum(ifelse(results == 'Win',1,0)),
                 Draws = sum(ifelse(results == 'Draw',1,0)),
-                Losses = sum(ifelse(results == 'Lose',1,0))
+                Losses = sum(ifelse(results == 'Lose',1,0)) 
       ) %>%
       mutate(pct_wins = Wins/Matches,
              pct_draws = Draws/Matches,
-             pct_losses = Losses/Matches) %>%
-      ggplot(aes(x = fct_reorder(team, desc(.[[input$var]]), sum), 
-                 fill = venue)) +
-     geom_bar(position = 'dodge', 
-              stat = 'identity', 
-              aes_string(y = input$var)) +
-     theme_classic() +
-     xlab('National Team') +
-     ylab(str_to_title(str_replace(input$var, '_', ' '))) +
-     labs(fill = 'Venue')
-    #ggplotly(p)
-    #p
+             pct_losses = Losses/Matches)
+    if(input$desc == 'desc'){
+      teamFilter <- p %>% 
+        summarise(order = rfun_graph()(.data[[input$var]], Matches)) %>% 
+        arrange(-order) %>% 
+        head(input$teams)
+      
+    p <-   p %>%
+        filter(team %in% teamFilter$team) %>%
+        mutate(temp = rfun_graph()(.data[[input$var]], Matches)) %>%
+        ggplot(aes(x = fct_reorder(team, 
+                                   -temp, 
+                                   mean), 
+                   fill = venue,
+                   text = paste0('NT: ',
+                                 team,
+                                 '<br>',str_to_title(str_replace(input$var, '_', ' ')),
+                                 ': ',
+                                 if(input$var %in% c('pct_wins', 'pct_draws', 'pct_losses')) paste(round(.data[[input$var]],2)*100,'%') else .data[[input$var]] 
+                   ))) +
+        geom_bar(position = 'dodge', 
+                 stat = 'identity', 
+                 aes_string(y = input$var)) +
+        theme_classic() +
+        xlab('National Team') +
+        ylab(str_to_title(str_replace(input$var, '_', ' '))) +
+        labs(fill = 'Venue') +
+        geom_text(aes(team, 
+                      temp, 
+                      label = if(input$var %in% c('pct_wins', 'pct_draws', 'pct_losses')) paste(round(temp,2)*100,'%') else temp, 
+                      group = team),
+                  size = 5,
+                  vjust = .5)
+    } else {
+      teamFilter <- p %>% 
+        summarise(order = rfun_graph()(.data[[input$var]], Matches)) %>% 
+        arrange(order) %>% 
+        head(input$teams)
+      
+     p <-  p %>%
+        filter(team %in% teamFilter$team) %>%
+        mutate(temp = rfun_graph()(.data[[input$var]], Matches)) %>%
+        ggplot(aes(x = fct_reorder(team, 
+                                   temp, 
+                                   mean), 
+                   fill = venue,
+                   text = paste0('NT: ',
+                                 team,
+                                 '<br>',str_to_title(str_replace(input$var, '_', ' ')),
+                                 ': ',
+                                 if(input$var %in% c('pct_wins', 'pct_draws', 'pct_losses')) paste(round(.data[[input$var]],2)*100,'%') else .data[[input$var]] 
+                   ))) +
+        geom_bar(position = 'dodge', 
+                 stat = 'identity', 
+                 aes_string(y = input$var)) +
+        theme_classic() +
+        xlab('National Team') +
+        ylab(str_to_title(str_replace(input$var, '_', ' '))) +
+        labs(fill = 'Venue') +
+        geom_text(aes(team, 
+                      temp, 
+                      label = if(input$var %in% c('pct_wins', 'pct_draws', 'pct_losses')) paste(round(temp,2)*100,'%') else temp, 
+                      group = team),
+                  size = 5,
+                  vjust = .5)
+    }
+    
+    ggplotly(p, tooltip = c('text')) %>%
+      style(hoverinfo = "none", traces = c(4,5,6))
+    
   })
   
   ##Reactive function for H2H tab

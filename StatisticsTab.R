@@ -1,7 +1,7 @@
 Statistics <- tabPanel(fluidRow(br(),
                                  column(3, 
                                         selectInput('var', 
-                                                    'Choose your variable', 
+                                                    'Choose your variable:', 
                                                     choices = c(`Matches` = 'Matches',
                                                                 `Goals For` = 'Goals_For', 
                                                                 `Goals Against` = 'Goals_Against',
@@ -14,14 +14,18 @@ Statistics <- tabPanel(fluidRow(br(),
                                                                 `% Losses`= 'pct_losses'))),
                                  column(width = 3, offset = 3, 
                                         numericInput('teams', 
-                                                     'Number of Teams', 
+                                                     'Number of Teams:', 
                                                      value = 10))),
                        fluidRow(column(9, 
                                        plotlyOutput('stats')
                        )),
                        fluidRow(column(3, 
                                        offset = 6,
-                                       tags$b('NT selection based on number of matches')
+                                       radioButtons('desc', 
+                                                    'Teams ordered by:',
+                                                    c('Descending order' = 'desc',                                                                                 '
+                                                      Ascending order' = 'asc'),
+                                                    selected = 'desc')
                                        )                   
                                 ),
                        title = 'Statistics')
